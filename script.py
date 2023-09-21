@@ -3,7 +3,7 @@ from pydub import AudioSegment
 import whisper
 import glob
 
-fileName = "policevisit.m4a"
+fileName = "monologue.mp3"
 
 # Add folders
 ContentFolder = os.path.exists("content")
@@ -41,8 +41,6 @@ for i, chunk in enumerate(chunks):
 print(f"Successfully split the audio file into {len(chunks)} chunks.")
 
 clips = next(os.walk("chunks"), (None, None, []))[2]  # [] if no file
-clips = [int(x) for x in clips]
-print(sorted(clips))
 
 lang = "en"
 model = whisper.load_model("base")
@@ -55,7 +53,7 @@ for clip in clips:
   mel = whisper.log_mel_spectrogram(audio).to(model.device)
 
   # Output the recognized text
-  options = whisper.DecodingOptions(language=lang, without_timestamps=True)
+  options = whisper.DecodingOptions(language=lang, without_timestamps=True, fp16 = False)
   result = whisper.decode(model, mel, options)
   print(result.text)
 
