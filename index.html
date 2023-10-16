@@ -7,12 +7,8 @@
   </head>
   <body>
     <form action="/upload" method="post" enctype="multipart/form-data">
-      <label for="firstName">First name</label><br />
-      <input type="text" id="firstName" name="firstName" /><br />
-      <label for="lastName">Last name</label><br />
-      <input type="text" id="lastName" name="lastName" /><br />
       <label for="fileUpload">Upload a file</label><br />
-      <input type="file" id="fileUpload" name="fileUpload" /><br />
+      <input type="file" id="fileUpload" name="fileUpload" required /><br />
       <input type="submit" value="Transcribe" />
     </form>
   </body>

@@ -1,6 +1,8 @@
 var express = require("express");
 var app = express();
 const path = require("path");
+// Require the upload middleware
+const upload = require("./upload");
 
 // RUNNING ORDER
 // 1. Browser POSTs a file to an express API
@@ -15,38 +17,40 @@ const path = require("path");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Require the upload middleware
-const upload = require("./upload");
+// Setup transcription function that will run the python script
+function runTranscription(filename, res) {
+  // const filePath = `uploads/${filename}`;
+  const spawn = require("child_process").spawn;
+  const ls = spawn("python", ["script.py", filename]);
+
+  ls.stdout.on("data", (data) => {
+    res.send(`stdout: ${data}`);
+  });
+
+  ls.stderr.on("data", (data) => {
+    console.log(`stderr: ${data}`);
+  });
+
+  ls.on("close", (code) => {
+    console.log(`child process exited with code ${code}`);
+  });
+}
 
 // Set up a route for file uploads
 app.post("/upload", upload.single("fileUpload"), (req, res) => {
   // Handle the uploaded file
-  res.json({ message: "File uploaded successfully!" });
+  const uploadedFilename = req.file.filename;
+
+  // Run transcription on uploaded file
+  runTranscription(uploadedFilename, res);
+  // res.send(filename);
 });
 
-// function runTranscription() {}
-
-// Transcribe post route
-app.post("/transcribe", (req, res, next) => {
-  // const form_data = req.body["fname"];
-  const form_data = req.body;
-  res.send(form_data);
-
-  // const spawn = require("child_process").spawn;
-  // const ls = spawn("python", ["reverse.py", form_data]);
-
-  // ls.stdout.on("data", (data) => {
-  //   res.send(`stdout: ${data}`);
-  // });
-
-  // ls.stderr.on("data", (data) => {
-  //   console.log(`stderr: ${data}`);
-  // });
-
-  // ls.on("close", (code) => {
-  //   console.log(`child process exited with code ${code}`);
-  // });
-});
+// // Transcribe post route
+// app.post("/transcribe", (req, res, next) => {
+//   const form_data = req.body;
+//   res.send(form_data);
+// });
 
 // Home route, contains form
 app.get("/", (req, res) => {
