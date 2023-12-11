@@ -4,15 +4,6 @@ const path = require("path");
 // Require the upload middleware
 const upload = require("./upload");
 
-// RUNNING ORDER
-// 1. Browser POSTs a file to an express API
-// 2. Express saves the file to the disk, ideally in a temporary folder
-// 3. Express API runs `child_process.exec` for the command `python myscript.py /path/to/filename`
-// 4. Express app loads file from disk based on the CLI argument, and when it's done, it writes the result to stdout in JSON
-// 5. The python script finishes and node calls the callback to the exec call and passes in the output string from the python file
-// 6. Express parses the JSON, sends the data back.
-// 7. Express deletes the temp file
-
 // Decode Form URL Encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -20,15 +11,20 @@ app.use(express.urlencoded({ extended: true }));
 // Setup transcription function that will run the python script
 function runTranscription(filename, res) {
   // const filePath = `uploads/${filename}`;
+  console.log("Spawning child process!");
   const spawn = require("child_process").spawn;
+
+  console.log(`Running transcription script on ${filename}`);
   const ls = spawn("python", ["script.py", filename]);
 
   ls.stdout.on("data", (data) => {
-    res.send(`stdout: ${data}`);
+    // res.send(`stdout: ${data}`); #This is a JSON object. How do I process it so I can pull out individual keys in the /upload route?
+    return data;
   });
 
   ls.stderr.on("data", (data) => {
     console.log(`stderr: ${data}`);
+    return data;
   });
 
   ls.on("close", (code) => {
@@ -42,8 +38,7 @@ app.post("/upload", upload.single("fileUpload"), (req, res) => {
   const uploadedFilename = req.file.filename;
 
   // Run transcription on uploaded file
-  runTranscription(uploadedFilename, res);
-  // res.send(filename);
+  res.send(runTranscription(uploadedFilename, res));
 });
 
 // // Transcribe post route

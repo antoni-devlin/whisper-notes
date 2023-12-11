@@ -1,4 +1,4 @@
-import os
+import os, json
 import glob
 import argparse
 from pydub import AudioSegment
@@ -7,6 +7,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument("filename")
 args = parser.parse_args()
 fileName = args.filename
+
+output = {"filename": "", "og_file_length_sec": 0, "transcript": "", "chunks": 0}
+
+output["filename"] = fileName
 
 # Create folder
 UploadsFolder = os.path.exists("uploads")
@@ -49,28 +53,31 @@ def transcribeAudioChunk(filename):
 # Chunking audio file
 # Load the large audio file
 audio = AudioSegment.from_file(f"uploads/{fileName}")
-
-print("Length of original audio is ", len(audio) / 1000, " seconds")
+output["og_file_length_sec"] = len(audio) / 1000
+# print("Length of original audio is ", len(audio) / 1000, " seconds")
 
 # Define the chunk length (e.g., 30 seconds)
 chunk_length = 29 * 1000  # in milliseconds
 
 # Break down the audio file into chunks
 chunks = [audio[i : i + chunk_length] for i in range(0, len(audio), chunk_length)]
+output["chunks"] = len(chunks)
 
-print(f"Successfully split the audio file into {len(chunks)} chunks.")
 
 import whisper
+
 # Save each chunk as a separate file, transcribe it, and write to file
 for i, chunk in enumerate(chunks):
     chunk.export(f"chunks/{i}.mp3", format="mp3")
     # Write into a text file
-    print(f"Writing chunk {i}")
+    # print(f"Writing chunk {i}")
     with open(f"transcripts/{fileName}-transcript.txt", "a+") as f:
         f.write(transcribeAudioChunk(f"{i}.mp3") + "\n")
 
 with open(f"transcripts/{fileName}-transcript.txt", "r") as f:
-  print(f.read())
+    output["transcript"] = f.read()
+    print(f.read())
 
+print(json.dumps(output))
 
 deleteAllInFolder("chunks/*")
