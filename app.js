@@ -1,33 +1,25 @@
 import express from "express";
-// var express = require("express");
 const app = express();
-// const path = require("path");
 import path from "path";
-// import {once} from events
-
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { spawn } from "node:child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Require the upload middleware
 import upload from "./upload.js";
-// const upload = require("./upload");
 
 // Decode Form URL Encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-import { spawn } from "node:child_process";
-
 // Setup transcription function that will run the python script
 function runTranscription(filename, res) {
-  // const filePath = `uploads/${filename}`;
-  console.log("Spawning child process!");
-  // const spawn = require("child_process").spawn;
-
-  console.log(`Running transcription script on ${filename}`);
+  console.log(
+    `Spawning childprocess and running transcription script on ${filename}`
+  );
   const ls = spawn("python", ["script.py", filename]);
 
   ls.stdout.on("data", (data) => {
@@ -51,18 +43,12 @@ app.post("/upload", upload, (req, res) => {
   const uploadedFilename = req.file.filename;
 
   // Run transcription on uploaded file
-  const output = runTranscription(uploadedFilename, res);
+  const output = runTranscription(uploadedFilename, res); // This is where I'm having issues. I'm not sure how to get the output of my python script.
   console.log(output);
   res.send(output);
 });
 
-// // Transcribe post route
-// app.post("/transcribe", (req, res, next) => {
-//   const form_data = req.body;
-//   res.send(form_data);
-// });
-
-// Home route, contains form
+// Home route, renders form
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "/index.html"));
 });
