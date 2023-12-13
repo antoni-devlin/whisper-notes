@@ -76,7 +76,7 @@ for i, chunk in enumerate(chunks):
 
 with open(f"transcripts/{fileName}-transcript.txt", "r") as f:
     output["transcript"] = f.read()
-    print(f.read())
+    # print(f.read())
 
 print(json.dumps(output))
 
