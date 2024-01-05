@@ -40,8 +40,7 @@ app.post("/upload", upload, async (req, res) => {
   const uploadedFilename = req.file.filename;
 
   // Run transcription on uploaded file
-  const output = await runTranscription(uploadedFilename); // This is where I'm having issues. I'm not sure how to get the output of my python script.
-  // console.log(output);
+  const output = await runTranscription(uploadedFilename);
   return res.send(output);
 });
 
