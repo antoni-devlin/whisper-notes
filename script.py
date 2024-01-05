@@ -66,18 +66,21 @@ output["chunks"] = len(chunks)
 
 import whisper
 
+transcriptFileName = f"{fileName}-transcript.txt"
+
 # Save each chunk as a separate file, transcribe it, and write to file
 for i, chunk in enumerate(chunks):
     chunk.export(f"chunks/{i}.mp3", format="mp3")
     # Write into a text file
     # print(f"Writing chunk {i}")
-    with open(f"transcripts/{fileName}-transcript.txt", "a+") as f:
+    with open(f"transcripts/{transcriptFileName}", "a+") as f:
         f.write(transcribeAudioChunk(f"{i}.mp3") + "\n")
 
 with open(f"transcripts/{fileName}-transcript.txt", "r") as f:
     output["transcript"] = f.read()
-    # print(f.read())
 
 print(json.dumps(output))
 
+
 deleteAllInFolder("chunks/*")
+deleteAllInFolder("uploads/*")
