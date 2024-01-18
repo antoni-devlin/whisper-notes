@@ -3,7 +3,8 @@ const app = express();
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { spawn } from "child_process";
+import { exec } from "child_process";
+import { promisify } from "util";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,22 +17,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Setup transcription function that will run the python script
-async function runTranscription(filename) {
-  // spawn new child process to call the python script
-  const python = spawn("python", ["script.py", filename]);
+async function runTranscriptionExec(filename) {
+  const transcriptionProcessResult = await promisify(exec)(
+    `python script.py ${filename}`
+  );
 
-  python.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-  });
-
-  // Async Iteration available since Node 10
-  for await (const data of python.stdout) {
-    return JSON.parse(`${data}`);
+  if (transcriptionProcessResult.stderr) {
+    console.log(`The transcription script failed to run. See error below
+    
+    ${transcriptionProcessResult.stderr}`);
+    process.exit(1);
   }
 
-  python.on("close", (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
+  try {
+    const transcriptionOutput = JSON.parse(transcriptionProcessResult.stdout);
+    return transcriptionOutput;
+  } catch (e) {
+    console.log(`failed to parse output of transcription script. Output below:
+    
+    ${transcriptionProcessResult.stdout}`);
+    process.exit(1);
+  }
 }
 
 // Set up a route for file uploads
@@ -40,7 +46,7 @@ app.post("/upload", upload, async (req, res) => {
   const uploadedFilename = req.file.filename;
 
   // Run transcription on uploaded file
-  const output = await runTranscription(uploadedFilename);
+  const output = await runTranscriptionExec(uploadedFilename);
   return res.send(output);
 });
 
