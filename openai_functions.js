@@ -6,13 +6,39 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
 });
 
-async function transcribe(audioFolder, fileName) {
+export async function transcribe(audioFolder, fileName) {
   const transcription = await openai.audio.transcriptions.create({
     file: fs.createReadStream(`${audioFolder}/${fileName}`),
     model: "whisper-1",
   });
 
-  console.log(transcription.text);
+  return transcription.text;
 }
 
-transcribe("uploads", "obama.mp3");
+export async function summarise(transcript) {
+  const completion = await openai.chat.completions.create({
+    messages: [
+      {
+        role: "user",
+        content: `Please summarise this transcribed audio file for me: ${transcript}`,
+      },
+    ],
+    model: "gpt-3.5-turbo-0125",
+  });
+
+  console.log(completion.choices[0]);
+  return completion.choices[0];
+}
+
+async function main() {
+  const transcript = await transcribe("uploads", "obama.mp3");
+  const summary = await summarise(transcript);
+
+  console.log("===Raw transcript===");
+  console.log(transcript);
+
+  console.log("===Summary===");
+  console.log(summary.message.content);
+}
+
+main();
