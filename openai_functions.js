@@ -20,7 +20,7 @@ export async function summarise(transcript) {
     messages: [
       {
         role: "user",
-        content: `Please summarise this transcribed audio file for me: ${transcript}`,
+        content: `Turn this transcribed audio file into notes for me to refer to later: ${transcript}`,
       },
     ],
     model: "gpt-3.5-turbo-0125",
@@ -30,15 +30,15 @@ export async function summarise(transcript) {
   return completion.choices[0];
 }
 
-async function main() {
-  const transcript = await transcribe("uploads", "obama.mp3");
-  const summary = await summarise(transcript);
+// async function main() {
+//   const transcript = await transcribe("uploads", "obama.mp3");
+//   const summary = await summarise(transcript);
 
-  console.log("===Raw transcript===");
-  console.log(transcript);
+//   console.log("===Raw transcript===");
+//   console.log(transcript);
 
-  console.log("===Summary===");
-  console.log(summary.message.content);
-}
+//   console.log("===Summary===");
+//   console.log(summary.message.content);
+// }
 
-main();
+// main();
